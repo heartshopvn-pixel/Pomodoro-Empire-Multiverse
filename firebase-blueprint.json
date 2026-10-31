@@ -1,0 +1,337 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Public player profile for online world map identification (no PII).",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the player",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "username": {
+          "type": "string",
+          "description": "Display username of the player on the World Map",
+          "minLength": 1,
+          "maxLength": 50
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the profile was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the profile was last updated"
+        }
+      },
+      "required": ["uid", "username", "createdAt", "updatedAt"]
+    },
+    "WorldTilePublic": {
+      "title": "WorldTilePublic",
+      "description": "Publicly visible World Map tile entity synced via 10x10 spatial chunks (chunk_0_0 to chunk_4_4 on the 50x50 map).",
+      "type": "object",
+      "properties": {
+        "tileId": {
+          "type": "string",
+          "description": "Deterministic tile document ID in format tile_X_Y",
+          "minLength": 5,
+          "maxLength": 32,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "chunkId": {
+          "type": "string",
+          "description": "Spatial 10x10 chunk identifier (chunk_0_0 through chunk_4_4)",
+          "minLength": 9,
+          "maxLength": 32,
+          "pattern": "^chunk_[0-4]_[0-4]$"
+        },
+        "visibility": {
+          "type": "string",
+          "description": "Public visibility marker for viewport chunk queries",
+          "enum": ["PUBLIC"],
+          "minLength": 6,
+          "maxLength": 16
+        },
+        "x": {
+          "type": "number",
+          "description": "World map X coordinate (0..49)"
+        },
+        "y": {
+          "type": "number",
+          "description": "World map Y coordinate (0..49)"
+        },
+        "kingdomId": {
+          "type": "string",
+          "description": "ID of the player kingdom occupying this tile",
+          "minLength": 3,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "kingdomName": {
+          "type": "string",
+          "description": "Display name of the kingdom on the World Map",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "kingdomLevel": {
+          "type": "number",
+          "description": "Current level of the kingdom (1..50)"
+        },
+        "day": {
+          "type": "number",
+          "description": "Current in-game day of the kingdom"
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the kingdom owner",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerUsername": {
+          "type": "string",
+          "description": "Username of the kingdom owner",
+          "minLength": 1,
+          "maxLength": 50
+        },
+        "population": {
+          "type": "number",
+          "description": "Total population + soldiers in this kingdom for World Map tooltip"
+        },
+        "gold": {
+          "type": "number",
+          "description": "Current gold reserve of this kingdom for World Map tooltip"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": [
+        "tileId",
+        "chunkId",
+        "visibility",
+        "x",
+        "y",
+        "kingdomId",
+        "kingdomName",
+        "kingdomLevel",
+        "day",
+        "ownerId",
+        "ownerUsername",
+        "population",
+        "gold",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "KingdomSavePrivate": {
+      "title": "KingdomSavePrivate",
+      "description": "Private full Kingdom save state strictly accessible ONLY by its owner (ownerId == request.auth.uid).",
+      "type": "object",
+      "properties": {
+        "kingdomId": {
+          "type": "string",
+          "description": "Unique kingdom identifier matching document ID",
+          "minLength": 3,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the kingdom owner",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerUsername": {
+          "type": "string",
+          "description": "Owner display name",
+          "minLength": 1,
+          "maxLength": 50
+        },
+        "name": {
+          "type": "string",
+          "description": "Kingdom name",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "worldX": {
+          "type": "number",
+          "description": "World map X coordinate (0..49)"
+        },
+        "worldY": {
+          "type": "number",
+          "description": "World map Y coordinate (0..49)"
+        },
+        "kingdomLevel": {
+          "type": "number",
+          "description": "Kingdom level (1..50)"
+        },
+        "day": {
+          "type": "number",
+          "description": "Current day"
+        },
+        "statePayload": {
+          "type": "object",
+          "description": "Native structured map of KingdomSaveData (resources, buildings, units, equipment, manor, etc.)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": [
+        "kingdomId",
+        "ownerId",
+        "ownerUsername",
+        "name",
+        "worldX",
+        "worldY",
+        "kingdomLevel",
+        "day",
+        "statePayload",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "StageAssetMatrixConfig": {
+      "title": "StageAssetMatrixConfig",
+      "description": "Global Admin Showroom Stage Asset Matrix configuration defining which models, ground textures, decorations, and enemies can spawn in each stage or map.",
+      "type": "object",
+      "properties": {
+        "configId": {
+          "type": "string",
+          "description": "Configuration document identifier (stage_asset_matrix)",
+          "minLength": 3,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "version": {
+          "type": "number",
+          "description": "Schema version of the asset matrix"
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "Admin identifier who confirmed the update",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "enabledStagesByModelId": {
+          "type": "object",
+          "description": "Map of modelId to list of enabled stageKeys"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of the latest matrix update"
+        }
+      },
+      "required": [
+        "configId",
+        "version",
+        "updatedBy",
+        "enabledStagesByModelId",
+        "updatedAt"
+      ]
+    },
+    "WorldChatMessage": {
+      "title": "WorldChatMessage",
+      "description": "Public world chat message displaying the sender login username as nickname.",
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "description": "Unique chat message identifier",
+          "minLength": 3,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "visibility": {
+          "type": "string",
+          "description": "Public visibility marker for world chat feed",
+          "enum": ["PUBLIC"],
+          "minLength": 6,
+          "maxLength": 16
+        },
+        "senderUid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the sender",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "senderUsername": {
+          "type": "string",
+          "description": "Login username displayed as chat nickname",
+          "minLength": 1,
+          "maxLength": 50
+        },
+        "text": {
+          "type": "string",
+          "description": "Chat message content",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "createdAtMs": {
+          "type": "number",
+          "description": "Client timestamp in milliseconds for ordering"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        }
+      },
+      "required": [
+        "messageId",
+        "visibility",
+        "senderUid",
+        "senderUsername",
+        "text",
+        "createdAtMs",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Public non-PII user profiles keyed by Firebase Auth UID."
+    },
+    "/world_tiles/{tileId}": {
+      "schema": { "$ref": "#/entities/WorldTilePublic" },
+      "description": "Shared 50x50 World Map occupied kingdom tiles partitioned by 10x10 chunkId for viewport loading."
+    },
+    "/kingdom_saves/{kingdomId}": {
+      "schema": { "$ref": "#/entities/KingdomSavePrivate" },
+      "description": "Private full Kingdom states strictly restricted to the owning player."
+    },
+    "/game_configs/{configId}": {
+      "schema": { "$ref": "#/entities/StageAssetMatrixConfig" },
+      "description": "Global Admin Stage Asset Matrix synced in real time to all players."
+    },
+    "/world_chat/{messageId}": {
+      "schema": { "$ref": "#/entities/WorldChatMessage" },
+      "description": "Public world chat messages shared across all players."
+    }
+  }
+}
+

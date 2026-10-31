@@ -1,0 +1,347 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net: Default deny all unmatched paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reusable Hardened Global Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Blueprint Validator 1: UserProfile (/users/{userId})
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['uid', 'username', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'username', 'createdAt', 'updatedAt'])
+        && data.uid is string
+        && data.uid.size() >= 1
+        && data.uid.size() <= 128
+        && data.uid.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.uid == request.auth.uid
+        && data.username is string
+        && data.username.size() >= 1
+        && data.username.size() <= 50
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Blueprint Validator 2: WorldTilePublic (/world_tiles/{tileId})
+    function isValidWorldTile(data) {
+      return data.keys().hasAll([
+          'tileId',
+          'chunkId',
+          'visibility',
+          'x',
+          'y',
+          'kingdomId',
+          'kingdomName',
+          'kingdomLevel',
+          'day',
+          'ownerId',
+          'ownerUsername',
+          'population',
+          'gold',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'tileId',
+          'chunkId',
+          'visibility',
+          'x',
+          'y',
+          'kingdomId',
+          'kingdomName',
+          'kingdomLevel',
+          'day',
+          'ownerId',
+          'ownerUsername',
+          'population',
+          'gold',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.tileId is string
+        && data.tileId.size() >= 5
+        && data.tileId.size() <= 32
+        && data.tileId.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.chunkId is string
+        && data.chunkId.size() >= 9
+        && data.chunkId.size() <= 32
+        && data.chunkId.matches('^chunk_[0-4]_[0-4]$')
+        && data.visibility is string
+        && data.visibility.size() == 6
+        && data.visibility == 'PUBLIC'
+        && data.x is int
+        && data.x >= 0
+        && data.x < 50
+        && data.y is int
+        && data.y >= 0
+        && data.y < 50
+        && data.kingdomId is string
+        && data.kingdomId.size() >= 3
+        && data.kingdomId.size() <= 64
+        && data.kingdomId.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.kingdomName is string
+        && data.kingdomName.size() >= 1
+        && data.kingdomName.size() <= 60
+        && data.kingdomLevel is int
+        && data.kingdomLevel >= 1
+        && data.kingdomLevel <= 50
+        && data.day is int
+        && data.day >= 1
+        && data.day <= 100000
+        && data.ownerId is string
+        && data.ownerId.size() >= 1
+        && data.ownerId.size() <= 128
+        && data.ownerId.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.ownerId == request.auth.uid
+        && data.ownerUsername is string
+        && data.ownerUsername.size() >= 1
+        && data.ownerUsername.size() <= 50
+        && data.population is int
+        && data.population >= 0
+        && data.population <= 1000000
+        && data.gold is int
+        && data.gold >= 0
+        && data.gold <= 1000000000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Blueprint Validator 3: KingdomSavePrivate (/kingdom_saves/{kingdomId})
+    function isValidKingdomSave(data) {
+      return data.keys().hasAll([
+          'kingdomId',
+          'ownerId',
+          'ownerUsername',
+          'name',
+          'worldX',
+          'worldY',
+          'kingdomLevel',
+          'day',
+          'statePayload',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'kingdomId',
+          'ownerId',
+          'ownerUsername',
+          'name',
+          'worldX',
+          'worldY',
+          'kingdomLevel',
+          'day',
+          'statePayload',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.kingdomId is string
+        && data.kingdomId.size() >= 3
+        && data.kingdomId.size() <= 64
+        && data.kingdomId.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.ownerId is string
+        && data.ownerId.size() >= 1
+        && data.ownerId.size() <= 128
+        && data.ownerId.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.ownerId == request.auth.uid
+        && data.ownerUsername is string
+        && data.ownerUsername.size() >= 1
+        && data.ownerUsername.size() <= 50
+        && data.name is string
+        && data.name.size() >= 1
+        && data.name.size() <= 60
+        && data.worldX is int
+        && data.worldX >= 0
+        && data.worldX < 50
+        && data.worldY is int
+        && data.worldY >= 0
+        && data.worldY < 50
+        && data.kingdomLevel is int
+        && data.kingdomLevel >= 1
+        && data.kingdomLevel <= 50
+        && data.day is int
+        && data.day >= 1
+        && data.day <= 100000
+        && data.statePayload is map
+        && data.statePayload.size() >= 1
+        && data.statePayload.size() <= 60
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // Collection 1: /users/{userId}
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && (
+        (resource == null && userId == request.auth.uid) ||
+        (resource != null && existing().uid == request.auth.uid)
+      );
+      allow list: if false;
+      allow create: if isVerifiedUser()
+        && isValidId(userId)
+        && isValidUserProfile(incoming())
+        && incoming().uid == userId
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser()
+        && isValidId(userId)
+        && isValidUserProfile(incoming())
+        && existing().uid == request.auth.uid
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['username', 'updatedAt']);
+      allow delete: if false;
+    }
+
+    // Collection 2: /world_tiles/{tileId}
+    // Publicly readable by chunk so all players see occupied Kingdom tiles within their active Viewport Chunks
+    match /world_tiles/{tileId} {
+      allow get: if isSignedIn() && isValidId(tileId) && (resource == null || existing().visibility == 'PUBLIC');
+      allow list: if isSignedIn() && existing().visibility == 'PUBLIC';
+      allow create: if isVerifiedUser()
+        && isValidId(tileId)
+        && isValidWorldTile(incoming())
+        && incoming().tileId == tileId
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/kingdom_saves/$(incoming().kingdomId));
+      allow update: if isVerifiedUser()
+        && isValidId(tileId)
+        && isValidWorldTile(incoming())
+        && existing().ownerId == request.auth.uid
+        && incoming().ownerId == existing().ownerId
+        && incoming().tileId == existing().tileId
+        && incoming().chunkId == existing().chunkId
+        && incoming().visibility == existing().visibility
+        && incoming().x == existing().x
+        && incoming().y == existing().y
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/kingdom_saves/$(incoming().kingdomId))
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'kingdomId',
+          'kingdomName',
+          'kingdomLevel',
+          'day',
+          'ownerUsername',
+          'population',
+          'gold',
+          'updatedAt'
+        ]);
+      allow delete: if isVerifiedUser()
+        && isValidId(tileId)
+        && existing().ownerId == request.auth.uid;
+    }
+
+    // Collection 3: /kingdom_saves/{kingdomId}
+    // Strictly Private: ONLY the owner (ownerId == request.auth.uid) can read or write their Kingdom's internal data
+    match /kingdom_saves/{kingdomId} {
+      allow get: if isSignedIn() && isValidId(kingdomId) && (resource == null || existing().ownerId == request.auth.uid);
+      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow create: if isVerifiedUser()
+        && isValidId(kingdomId)
+        && isValidKingdomSave(incoming())
+        && incoming().kingdomId == kingdomId
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/world_tiles/$(('tile_' + string(incoming().worldX) + '_' + string(incoming().worldY))));
+      allow update: if isVerifiedUser()
+        && isValidId(kingdomId)
+        && isValidKingdomSave(incoming())
+        && existing().ownerId == request.auth.uid
+        && incoming().ownerId == existing().ownerId
+        && incoming().kingdomId == existing().kingdomId
+        && incoming().worldX == existing().worldX
+        && incoming().worldY == existing().worldY
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'ownerUsername',
+          'name',
+          'kingdomLevel',
+          'day',
+          'statePayload',
+          'updatedAt'
+        ]);
+      allow delete: if isVerifiedUser()
+        && isValidId(kingdomId)
+        && existing().ownerId == request.auth.uid;
+    }
+
+    // Blueprint Validator 4: StageAssetMatrixConfig (/game_configs/{configId})
+    function isValidStageAssetMatrixConfig(data) {
+      return data.keys().hasAll([
+          'configId',
+          'version',
+          'updatedBy',
+          'enabledStagesByModelId',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'configId',
+          'version',
+          'updatedBy',
+          'enabledStagesByModelId',
+          'updatedAt'
+        ])
+        && data.configId is string
+        && data.configId == 'stage_asset_matrix'
+        && data.version is int
+        && data.version >= 1
+        && data.version <= 100
+        && data.updatedBy is string
+        && data.updatedBy.size() >= 1
+        && data.updatedBy.size() <= 80
+        && data.enabledStagesByModelId is map
+        && data.enabledStagesByModelId.size() >= 1
+        && data.enabledStagesByModelId.size() <= 60
+        && data.updatedAt is timestamp;
+    }
+
+    // Collection 4: /game_configs/{configId}
+    // Publicly readable by all players so map generation always obeys the latest Admin Showroom Matrix
+    match /game_configs/{configId} {
+      allow get: if isValidId(configId) && configId == 'stage_asset_matrix';
+      allow list: if false;
+      allow create: if isVerifiedUser()
+        && isValidId(configId)
+        && configId == 'stage_asset_matrix'
+        && isValidStageAssetMatrixConfig(incoming())
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser()
+        && isValidId(configId)
+        && configId == 'stage_asset_matrix'
+        && isValidStageAssetMatrixConfig(incoming())
+        && incoming().configId == existing().configId
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'version',
+          'updatedBy',
+          'enabledStagesByModelId',
+          'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+  }
+}

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (function () {
+        try {
+          var desc =
+            Object.getOwnPropertyDescriptor(window, 'fetch') ||
+            Object.getOwnPropertyDescriptor(Window.prototype, 'fetch');
+          if (desc && desc.get && !desc.set && desc.configurable) {
+            var currentFetch = window.fetch.bind(window);
+            Object.defineProperty(window, 'fetch', {
+              configurable: true,
+              enumerable: true,
+              get: function () {
+                return currentFetch;
+              },
+              set: function (fn) {
+                if (typeof fn === 'function') {
+                  currentFetch = fn;
+                }
+              },
+            });
+          }
+        } catch (_e) {}
+
+        window.addEventListener(
+          'error',
+          function (event) {
+            var filename = (event && event.filename) || '';
+            var msg = (event && event.message) || '';
+            if (
+              filename.indexOf('chrome-extension://') === 0 ||
+              msg.indexOf('Cannot set property fetch') !== -1
+            ) {
+              event.stopImmediatePropagation();
+              event.preventDefault();
+            }
+          },
+          true
+        );
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pomodoro Empire Ultimate V.10</title>
+    <meta name="description" content="Game chiến thuật thời gian thực (RTS) 2D góc nhìn từ trên xuống phong cách Pixel Art cổ điển 16:9. Điều khiển Đức Vua và Quân lính xây dựng công trình, khai thác tài nguyên và phòng thủ vương quốc." />
+    <meta property="og:title" content="Pomodoro Empire Ultimate V.10" />
+    <meta property="og:description" content="Game chiến thuật thời gian thực (RTS) 2D góc nhìn từ trên xuống phong cách Pixel Art cổ điển 16:9. Điều khiển Đức Vua và Quân lính xây dựng công trình, khai thác tài nguyên và phòng thủ vương quốc." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+  </head>
+  <body class="bg-[#120d09] text-[#f4e8d1] antialiased selection:bg-[#d97706] selection:text-black overflow-hidden">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
